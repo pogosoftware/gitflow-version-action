@@ -1,0 +1,27 @@
+name: 'Gitflow version'
+description: 'Generate next version based on gitflow style.'
+outputs:
+  inc:
+    description: "Increment"
+    value: ${{ steps.incpreid.outputs.inc }}
+  preid:
+    description: "Pre ID"
+    value: ${{ steps.incpreid.outputs.preid }}
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      
+    - name: Install Node16
+      uses: actions/setup-node@v3
+      with:
+        node-version: 16
+
+    - name: Install Semver
+      run: npm install -g semver
+
+    - name: Get inc and preid
+      id: incpreid
+      run: get-inc-and-preid.sh
+      shell: bash
