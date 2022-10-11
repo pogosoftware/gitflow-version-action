@@ -20,6 +20,7 @@ runs:
 
     - name: Install Semver
       run: npm install -g semver
+      shell: bash
 
     - name: Get inc and preid
       id: incpreid
