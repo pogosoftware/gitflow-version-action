@@ -11,15 +11,58 @@ runs:
   using: "composite"
   steps:
     - uses: actions/checkout@v3
+    
     - uses: actions/setup-node@v3
       with:
         node-version: 16
+    
     - run: npm install -g semver
       shell: bash
+    
     - name: Get inc and preid
       id: incpreid
       run: |
-        ls -la
-        chmod +x ./get-inc-and-preid.sh
-        ./get-inc-and-preid.sh
+        # Feature -> Develop
+        if ${{ startsWith(github.head_ref, 'feature') && github.ref == 'develop' }};
+        then
+          # Breaking change
+          if ${{ contains(github.event.pull_request.labels.*.name, 'breaking') }};
+          then
+            echo "::set-output name=inc::premajor"
+            echo "::set-output name=preid::alpha"
+          else
+            echo "::set-output name=inc::preminor"
+            echo "::set-output name=preid::alpha"
+          fi
+        # Create release branch
+        elif ${{ github.head_ref == '' && github.ref == 'refs/heads/release/' }}
+        then
+          echo "::set-output name=inc::prerelease"
+          echo "::set-output name=preid::rc"
+        # Release -> Develop (Bugfixing on release candinate)
+        elif ${{ startsWith(github.head_ref, 'release') && github.ref == 'develop' }}
+        then
+          echo "::set-output name=inc::prepatch"
+          echo "::set-output name=preid::alpha"
+        # Hotfix -> Develop (hotfix from main)
+        elif ${{ startsWith(github.head_ref, 'hotfix') && github.ref == 'develop' }};
+        then
+          echo "::set-output name=inc::prepatch"
+          echo "::set-output name=preid::alpha"
+        # Bugfix -> Release
+        elif ${{ startsWith(github.head_ref, 'bugfix') && github.ref == 'refs/heads/release/' }}
+        then
+          echo "::set-output name=inc::prepatch"
+          echo "::set-output name=preid::rc"
+        # Release -> Main
+        elif ${{ startsWith(github.head_ref, 'release') && github.ref == 'main' }}
+        then
+          echo "::set-output name=inc::stable"
+          echo "::set-output name=preid::"
+        # Hotfix -> Main
+        elif ${{ startsWith(github.head_ref, 'hotfix') && github.ref == 'main' }};
+        then
+          echo "::set-output name=inc::prepatch"
+          echo "::set-output name=preid::"
+        fi
       shell: bash
