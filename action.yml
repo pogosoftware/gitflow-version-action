@@ -9,16 +9,13 @@ outputs:
     value: ${{ steps.incpreid.outputs.preid }}
 runs:
   using: "composite"
-  steps:    
-    - name: Install Node16
-      uses: actions/setup-node@v3
+  steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
       with:
         node-version: 16
-
-    - name: Install Semver
-      run: npm install -g semver
+    - run: npm install -g semver
       shell: bash
-
     - name: Get inc and preid
       id: incpreid
       run: |
