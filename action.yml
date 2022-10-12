@@ -24,5 +24,7 @@ runs:
 
     - name: Get inc and preid
       id: incpreid
-      run: get-inc-and-preid.sh
+      run: |
+        chmod +x ./get-inc-and-preid.sh
+        ./get-inc-and-preid.sh
       shell: bash
