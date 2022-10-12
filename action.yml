@@ -3,24 +3,24 @@ description: 'Generate next version based on gitflow style.'
 outputs:
   inc:
     description: "Increment"
-    value: ${{ steps.incpreid.outputs.inc }}
+    value: ${{ steps.get-inc-and-preid.outputs.inc }}
   preid:
     description: "Pre ID"
-    value: ${{ steps.incpreid.outputs.preid }}
+    value: ${{ steps.get-inc-and-preid.outputs.preid }}
 runs:
   using: "composite"
-  steps:
-    - uses: actions/checkout@v3
-    
-    - uses: actions/setup-node@v3
+  steps:     
+    - name: Install NodeJS
+      uses: actions/setup-node@v3
       with:
         node-version: 16
-    
-    - run: npm install -g semver
+
+    - name: Install semver
+      run: npm install -g semver
       shell: bash
-    
-    - name: Get inc and preid
-      id: incpreid
+
+    - name: Generate inc and preid
+      id: get-inc-and-preid
       run: |
         # Feature -> Develop
         if ${{ startsWith(github.head_ref, 'feature') && github.ref == 'develop' }};
@@ -65,4 +65,21 @@ runs:
           echo "::set-output name=inc::prepatch"
           echo "::set-output name=preid::"
         fi
+      shell: bash
+
+    - name: Update version
+      run: |
+        VERSION=`cat ./version.txt`
+        INC=${{ steps.get-inc-and-preid.outputs.inc }}
+        PREID=${{ steps.get-inc-and-preid.outputs.preid }}
+        semver $VERSION -i $INC --preid $PREID > ./version.txt
+      shell: bash
+
+    - name: Commit changes
+      run: |
+        VERSION=`cat ./version.txt`
+        git config --local user.email 'github-actions[bot]@users.noreply.github.com'
+        git config --local user.name 'github-actions[bot]'
+        git commit -am "Bump version to $VERSION"
+        git push
       shell: bash
