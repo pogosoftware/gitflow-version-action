@@ -9,10 +9,7 @@ outputs:
     value: ${{ steps.incpreid.outputs.preid }}
 runs:
   using: "composite"
-  steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-      
+  steps:    
     - name: Install Node16
       uses: actions/setup-node@v3
       with:
@@ -25,6 +22,7 @@ runs:
     - name: Get inc and preid
       id: incpreid
       run: |
+        ls -la
         chmod +x ./get-inc-and-preid.sh
         ./get-inc-and-preid.sh
       shell: bash
